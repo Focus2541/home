@@ -2,7 +2,7 @@
  * เปลี่ยน VERSION ทุกครั้งที่แก้ไฟล์ใด ๆ ใน repo นี้ → แอปจะขึ้นแถบ "มีอัปเดต"
  * แคชเฉพาะไฟล์ของหน้านี้ ไม่ยุ่งกับแอปอื่นบน focus2541.github.io
  */
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 const PREFIX = 'focus-home-';            // ลบเฉพาะแคชที่ขึ้นต้นด้วยชื่อนี้เท่านั้น
 const CACHE = PREFIX + VERSION;
 

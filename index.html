@@ -775,8 +775,29 @@ function spendView(j){
   cats = cats.map(c => ({name: c.name ?? c.category ?? c[0], amount: num(c.amount ?? c.total ?? c[1])})).filter(c => c.name && c.amount != null).sort((a, b) => b.amount - a.amount);
   return {total, budget: num(j.budget), income: num(j.income), cur: j.currency || '฿', month: j.month, cats, updated: j.updatedAt};
 }
-/* --- ทริปจาก TripBudget (อ่านอย่างเดียว) --- */
+/* --- ทริปจาก TripBudget (อ่านอย่างเดียว) ---
+   tb_v4 = {trips:[{id, name, country:'JP', startDate:'YYYY-MM-DD', days:5, ...}], currentId}
+   วันกลับ = startDate + days - 1 */
+function flagOf(cc){ return /^[A-Z]{2}$/.test(cc || '') ? String.fromCodePoint(...[...cc].map(c => 0x1F1A5 + c.charCodeAt(0))) : '🌍'; }
+function countryTH(cc){ try { return /^[A-Z]{2}$/.test(cc || '') ? new Intl.DisplayNames(['th'], {type:'region'}).of(cc) : ''; } catch (_) { return ''; } }
+function findTripBudget(){
+  let db; try { db = JSON.parse(localStorage.getItem('tb_v4') || 'null'); } catch (_) { return null; }
+  if (!db || !Array.isArray(db.trips)) return null;
+  const today = startOfDay(new Date());
+  const list = db.trips.map(t => {
+    const start = parseDate(t.startDate); if (!start) return null;
+    const days = Math.max(1, parseInt(t.days) || 1);
+    const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + days - 1);
+    const cn = countryTH(t.country);
+    return {name: t.name || cn || 'ทริป', dest: cn && cn !== t.name ? cn : '', flag: flagOf(t.country), start, end, days};
+  }).filter(t => t && t.end >= today).sort((a, b) => a.start - b.start);
+  return list[0] || null;
+}
 function findTrip(){
+  if (!S.settings.tripKey.trim()){ const t = findTripBudget(); if (t) return t; }
+  return findTripGeneric();
+}
+function findTripGeneric(){
   const want = S.settings.tripKey.trim();
   let keys = [];
   try { keys = want ? [want] : Object.keys(localStorage).filter(k => /trip|^tb_/i.test(k) && !k.startsWith('home.')); } catch (_) { return null; }
@@ -832,8 +853,8 @@ function cardTrip(){
   else if (n === 0) cnt = `<div class="count"><b>วันนี้!</b></div>`;
   else cnt = `<div class="count"><span class="muted">วันที่</span><b>${1 - n}</b><span class="muted">/ ${total}</span></div>`;
   const range = thDate(t.start, {day:'numeric', month:'short'}) + (+t.end !== +t.start ? ' – ' + thDate(t.end) : ' ' + new Date(t.start).toLocaleDateString('th-TH', {year:'2-digit'}));
-  return `<section class="card"><div class="card-h"><span class="t">${n < 0 ? '🧳 กำลังเที่ยว' : '✈️ ทริปถัดไป'}</span></div>
-    <a class="trip" href="${esc(tb ? tb.url : '/tripbudget/')}"><div class="info"><div class="big">${esc(t.name)}</div>
+  return `<section class="card"><div class="card-h"><span class="t">${n < 0 ? '🧳 กำลังเที่ยว' : '✈️ ทริปถัดไป'}</span>${t.days ? `<span class="chip">${t.days} วัน</span>` : ''}</div>
+    <a class="trip" href="${esc(tb ? tb.url : '/tripbudget/')}">${t.flag ? `<span style="font-size:2rem;line-height:1">${t.flag}</span>` : ''}<div class="info"><div class="big">${esc(t.name)}</div>
     <div class="muted" style="font-size:.85rem">${t.dest && t.dest !== t.name ? esc(t.dest) + ' · ' : ''}${range}</div></div>${cnt}</a></section>`;
 }
 function cardSpend(){
@@ -986,7 +1007,7 @@ function renderSettings(){
 
   <div class="sec"><h3>ทริปจาก TripBudget</h3><div class="box">
     <div class="row"><div class="lbl">${trip ? `พบ: <b>${esc(trip.name)}</b><small>เริ่ม ${thDate(trip.start)}</small>` : 'ยังไม่พบทริปที่จะถึง<small>การ์ดจะซ่อนไว้จนกว่าจะพบ</small>'}</div></div>
-    <label class="field"><span>ชื่อ key ใน localStorage (ไม่บังคับ · เว้นว่าง = ค้นหาอัตโนมัติ, อ่านอย่างเดียว)</span><input type="text" data-k="tripKey" value="${esc(st.tripKey)}" placeholder="อัตโนมัติ"></label>
+    <label class="field"><span>อ่านจาก TripBudget (tb_v4) อัตโนมัติ · ใส่ key อื่นเฉพาะถ้าจะดึงจากแอปอื่น (อ่านอย่างเดียว)</span><input type="text" data-k="tripKey" value="${esc(st.tripKey)}" placeholder="tb_v4 (อัตโนมัติ)"></label>
   </div></div>
 
   <div class="sec"><h3>วันสำคัญ</h3><div class="box">
