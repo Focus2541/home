@@ -401,9 +401,10 @@ function defaults(){
       {id:uid(), name:'ที่นี่ดี', url:'/thineedee/', icon:{t:'icon', v:'pin'}, color:'#ea580c', group:'travel', pinned:false},
       {id:uid(), name:'StudyAbroad', url:'/studyabroad/', icon:{t:'icon', v:'cap'}, color:'#4f46e5', group:'travel', pinned:false},
       {id:uid(), name:'โน้ตเสียง AI', url:'/ai-notes-app/', icon:{t:'icon', v:'mic'}, color:'#7c3aed', group:'daily', pinned:false},
-      {id:uid(), name:'FilmCam', url:'/filmcam/', icon:{t:'icon', v:'camera'}, color:'#d97706', group:'daily', pinned:false}
+      {id:uid(), name:'FilmCam', url:'/filmcam/', icon:{t:'icon', v:'camera'}, color:'#d97706', group:'daily', pinned:false},
+      {id:uid(), name:'ถ่ายเป็น', url:'/thaipen/', icon:{t:'icon', v:'camera'}, color:'#16a34a', group:'daily', pinned:false}
     ],
-    added: ['filmcam'],
+    added: ['filmcam','thaipen'],
     events: [],
     quotes: DEFAULT_QUOTES.slice()
   };
@@ -424,7 +425,7 @@ function normalize(d){
   out.apps.forEach(a => { if (!gids.has(a.group)) a.group = out.groups[0].id; if (!a.id) a.id = uid(); if (!a.icon) a.icon = {t:'icon', v:'link'}; });
   // แอปใหม่ที่เพิ่มทีหลัง: ใส่ให้ผู้ใช้เดิมครั้งเดียว (ถ้าลบทิ้งแล้วจะไม่กลับมาอีก)
   out.added = Array.isArray(d.added) ? d.added : [];
-  [{key:'filmcam', app:{name:'FilmCam', url:'/filmcam/', icon:{t:'icon', v:'camera'}, color:'#d97706', group:'daily', pinned:false}}].forEach(n => {
+  [{key:'filmcam', app:{name:'FilmCam', url:'/filmcam/', icon:{t:'icon', v:'camera'}, color:'#d97706', group:'daily', pinned:false}}, {key:'thaipen', app:{name:'ถ่ายเป็น', url:'/thaipen/', icon:{t:'icon', v:'camera'}, color:'#16a34a', group:'daily', pinned:false}}].forEach(n => {
     if (out.added.includes(n.key)) return;
     out.added.push(n.key);
     if (!out.apps.some(a => (a.url || '').includes(n.app.url))) out.apps.push(Object.assign({id:uid()}, n.app, {group: gids.has(n.app.group) ? n.app.group : out.groups[0].id}));
